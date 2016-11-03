@@ -21,11 +21,27 @@ let
         /* rev = "210b3b3184b27be8597f320fc9f337d3997dce94"; */
         /* sha256 = "03gl40738zyrsg5md5l5gyi5d1f5h4h4kbliissbxi4q7qwr38v5"; */
         # https://github.com/NixOS/nixpkgs/pull/18386
-        owner = "DavidEGrayson";
-        repo = "nixpkgs";
-        rev = "873da5aa4014fb836a19f3afc2a848443ff2ede8";
-        sha256 = "047km1cnkalbjf9nwvw3ixi29c0h48xyjigccsgmingbbx2ig1pn";
+        /* owner = "DavidEGrayson"; */
+        /* repo = "nixpkgs"; */
+        /* rev = "873da5aa4014fb836a19f3afc2a848443ff2ede8"; */
+        /* sha256 = "047km1cnkalbjf9nwvw3ixi29c0h48xyjigccsgmingbbx2ig1pn"; */
         # https://github.com/NixOS/nixpkgs/compare/master...DavidEGrayson:cross_system_fixes_2
+        /* owner = "DavidEGrayson"; */
+        /* repo = "nixpkgs"; */
+        /* rev = "9cedf1b7a794e70706804b7239807f39c0a76ecb"; */
+        /* sha256 = "0p7bd1w8kplrn6dkr1c4lp163l439pmclai2rbfz1p1q09f4p7cv"; */
+        # https://github.com/NixOS/nixpkgs/pull/15043
+        # TODO?
+        # https://github.com/Ericson2314/nixpkgs/tree/vcunat-cross-stdenv
+        /* owner = "Ericson2314"; */
+        /* repo = "nixpkgs"; */
+        /* rev = "5ace2337bcb68ed53df180b9167ed80006209582"; */
+        /* sha256 = "1j2hpsdx58qjy8hr1si1vv3drap8lz1jwdzrmq8p9r7r8g7rmbdm"; */
+        # https://github.com/NixOS/nixpkgs/pull/20108 (Top level cleanup)
+        owner = "Ericson2314";
+        repo = "nixpkgs";
+        rev = "0e81f5a93d4869c768596c5269976fb38d461a1e";
+        sha256 = "0hmsdq2whdmz5w3gh7zsz0fmj2dnvrsnq53ygrqn9q9323y4f1bz";
       };
   /* nixpkgs = <nixpkgs>; */
 
@@ -78,12 +94,75 @@ in
           in
             with self.stdenv.lib;
             {
+              /* uclibcCross = overrideDerivation super.uclibcCross */
+              /* uclibcCross = overrideDerivation super.uclibcCross */
+              /* libcCross = overrideDerivation super.libcCross */
               uclibc = overrideDerivation super.uclibc
+              /* uclibc = super.uclibc.override */
                 (oldAttrs:
                   {
-                    # UCLIBC_SUSV4_LEGACY defines 'usleep', needed for socat dependency libxio.a
-                    nixConfig = oldAttrs.nixConfig + ''
+                    # UCLIBC_SUSV3_LEGACY defines 'usleep', needed for socat dependency libxio.a
+                    /* nixConfig = oldAttrs.nixConfig + '' */
+                    /*   UCLIBC_SUSV3_LEGACY y */
+                    /* ''; */
+
+                    /* crossAttrs.extraCrossConfig = oldAttrs.crossAttrs.extraCrossConfig + '' */
+                    /* crossAttrs.extraCrossConfig = '' */
+                    /*   UCLIBC_SUSV3_LEGACY y */
+                    /* ''; */
+                    /* crossAttrs = { */
+                    /*   extraCrossConfig = '' */
+                    /*     UCLIBC_SUSV3_LEGACY y */
+                    /*     printf "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" &1>2 */
+                    /*   ''; */
+                    /*   /1* postConfigure = stdenv.lib.optionalString useMusl '' *1/ */
+                    /*   /1*   makeFlagsArray+=("CC=$crossConfig-gcc -isystem ${musl.crossDrv}/include -B${musl.crossDrv}/lib -L${musl.crossDrv}/lib") *1/ */
+                    /*   /1* ''; *1/ */
+                    /* }; */
+
+                    /* # UCLIBC_SUSV3_LEGACY defines 'usleep', needed for socat dependency libxio.a */
+                    /* nixConfig = '' */
+                    /*   RUNTIME_PREFIX "/" */
+                    /*   DEVEL_PREFIX "/" */
+                    /*   UCLIBC_HAS_WCHAR y */
+                    /*   UCLIBC_HAS_FTW y */
+                    /*   UCLIBC_HAS_RPC y */
+                    /*   DO_C99_MATH y */
+                    /*   UCLIBC_HAS_PROGRAM_INVOCATION_NAME y */
+                    /*   UCLIBC_SUSV3_LEGACY y */
+                    /*   UCLIBC_HAS_THREADS_NATIVE y */
+                    /*   KERNEL_HEADERS "${linuxHeaders}/include" */
+                    /* ''; */
+                    /* crossAttrs = '' */
+                    /*   UCLIBC_SUSV3_LEGACY y */
+                    /* ''; */
+                    crossAttrs.extraCrossConfig = ''
                       UCLIBC_SUSV3_LEGACY y
+                    '';
+                    configurePhase = oldAttrs.configurePhase + ''
+                      echo "=========================================" &1>2
+                      echo "=========================================" &1>2
+                      echo "$extraCrossConfig" &1>2
+                      echo "=========================================" &1>2
+                      echo "=========================================" &1>2
+                    '';
+                  }
+                );
+              libcCross = overrideDerivation super.libcCross
+                (oldAttrs:
+                  {
+                    extraCrossConfig = ''
+                      UCLIBC_SUSV3_LEGACY y
+                      BR2_UCLIBC_CONFIG y
+                      UCLIBC_SUSV3_LEGACY_MACROS y
+                    '';
+                    configurePhase = oldAttrs.configurePhase + ''
+                      echo "=========================================" &1>2
+                      echo "=========================================" &1>2
+                      echo "$extraCrossConfig" &1>2
+                      echo "=========================================" &1>2
+                      echo "=========================================" &1>2
+                      sleep 10;
                     '';
                   }
                 );
@@ -101,13 +180,24 @@ in
                     bash_cv_wcwidth_broken = "no";
                   }
                 );
-              socat = overrideDerivation super.socat
+              socat = /* overrideDerivation */ super.socat.override
                 (oldAttrs:
                   {
-                    gcc = self.gcc49;
+                    /* cc = self.stdenv.gccCross; */
+                    /* libccc = self.stdenv.gccCross; */
                     /* libc = self.pkgs.glibc_multi; */
                     /* libc = self.pkgs.libcCross; */
                     /* libc = self.pkgs.uclibc; */
+                    /* crossAttrs.extraCrossConfig = '' */
+                    /*   UCLIBC_SUSV3_LEGACY y */
+                    /* ''; */
+                    /* crossAttrs = '' */
+                    /*   UCLIBC_SUSV3_LEGACY y */
+                    /* ''; */
+                    /* configurePhase = '' */
+                    /*   gcc --version &1>2 */
+                    /*   gcc -print-libgcc-file-name &1>2 */
+                    /* ''; #  + oldAttrs.configurePhase; */
                   }
                 );
               /* petool = self.callPackage (self.fetchFromGitHub { */
