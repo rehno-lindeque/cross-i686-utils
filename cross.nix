@@ -63,31 +63,38 @@ let
       kernelAutoModules = false;
     };
 
+  cross = {
+      /* config = "mips-unknown-linux"; */
+      config = "i686-unknown-linux";
+      bigEndian = true;
+      /* arch = "mips"; */
+      /* arch = "i686"; */
+      arch = "i386";
+      float = "soft";
+      withTLS = true;
+      /* libc = "glibc"; # "uclibc"; ? */
+      libc = "uclibc";
+      platform = pc32 // {
+        name = "tpsys";
+        kernelMajor = "2.6"; # 2.6.16.20
+        /* kernelArch = "mips32"; */
+      };
+      openssl.system = "linux-generic32";
+      gcc = {
+        arch = "i686";
+        /* arch = "mips32"; */
+      };
+      uclibc.extraConfig = ''
+        UCLIBC HAS_RESOLVER_SUPPORT y
+        UCLIBC_SUSV3_LEGACY y
+        UCLIBC_HAS_LIBRESOLV_STUB y
+        UCLIBC_HAS_LIBNSL_STUB y
+        BR2_UCLIBC_CONFIG y'';
+    };
 in
   import nixpkgs
     {
-      crossSystem = {
-        /* config = "mips-unknown-linux"; */
-        config = "i686-unknown-linux";
-        bigEndian = true;
-        /* arch = "mips"; */
-        /* arch = "i686"; */
-        arch = "i386";
-        float = "soft";
-        withTLS = true;
-        /* libc = "glibc"; # "uclibc"; ? */
-        libc = "uclibc";
-        platform = pc32 // {
-          name = "tpsys";
-          kernelMajor = "2.6"; # 2.6.16.20
-          /* kernelArch = "mips32"; */
-        };
-        openssl.system = "linux-generic32";
-        gcc = {
-          arch = "i686";
-          /* arch = "mips32"; */
-        };
-      };
+      crossSystem = cross;
       config = {
         packageOverrides = super:
           let self = super.pkgs;
@@ -97,73 +104,131 @@ in
               /* uclibcCross = overrideDerivation super.uclibcCross */
               /* uclibcCross = overrideDerivation super.uclibcCross */
               /* libcCross = overrideDerivation super.libcCross */
-              uclibc = overrideDerivation super.uclibc
-              /* uclibc = super.uclibc.override */
-                (oldAttrs:
-                  {
-                    # UCLIBC_SUSV3_LEGACY defines 'usleep', needed for socat dependency libxio.a
-                    /* nixConfig = oldAttrs.nixConfig + '' */
-                    /*   UCLIBC_SUSV3_LEGACY y */
-                    /* ''; */
+              /* uclibc = overrideDerivation super.uclibc */
+              /*   (oldAttrs: */
+              /*     { */
+              /*       # UCLIBC_SUSV3_LEGACY defines 'usleep', needed for socat dependency libxio.a */
+              /*       /1* nixConfig = oldAttrs.nixConfig + '' *1/ */
+              /*       /1*   UCLIBC_SUSV3_LEGACY y *1/ */
+              /*       /1* ''; *1/ */
 
-                    /* crossAttrs.extraCrossConfig = oldAttrs.crossAttrs.extraCrossConfig + '' */
-                    /* crossAttrs.extraCrossConfig = '' */
-                    /*   UCLIBC_SUSV3_LEGACY y */
-                    /* ''; */
-                    /* crossAttrs = { */
-                    /*   extraCrossConfig = '' */
-                    /*     UCLIBC_SUSV3_LEGACY y */
-                    /*     printf "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" &1>2 */
-                    /*   ''; */
-                    /*   /1* postConfigure = stdenv.lib.optionalString useMusl '' *1/ */
-                    /*   /1*   makeFlagsArray+=("CC=$crossConfig-gcc -isystem ${musl.crossDrv}/include -B${musl.crossDrv}/lib -L${musl.crossDrv}/lib") *1/ */
-                    /*   /1* ''; *1/ */
-                    /* }; */
+              /*       /1* crossAttrs.extraCrossConfig = oldAttrs.crossAttrs.extraCrossConfig + '' *1/ */
+              /*       /1* crossAttrs.extraCrossConfig = '' *1/ */
+              /*       /1*   UCLIBC_SUSV3_LEGACY y *1/ */
+              /*       /1* ''; *1/ */
+              /*       /1* crossAttrs = { *1/ */
+              /*       /1*   extraCrossConfig = '' *1/ */
+              /*       /1*     UCLIBC_SUSV3_LEGACY y *1/ */
+              /*       /1*     printf "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" &1>2 *1/ */
+              /*       /1*   ''; *1/ */
+              /*       /1*   /2* postConfigure = stdenv.lib.optionalString useMusl '' *2/ *1/ */
+              /*       /1*   /2*   makeFlagsArray+=("CC=$crossConfig-gcc -isystem ${musl.crossDrv}/include -B${musl.crossDrv}/lib -L${musl.crossDrv}/lib") *2/ *1/ */
+              /*       /1*   /2* ''; *2/ *1/ */
+              /*       /1* }; *1/ */
 
-                    /* # UCLIBC_SUSV3_LEGACY defines 'usleep', needed for socat dependency libxio.a */
-                    /* nixConfig = '' */
-                    /*   RUNTIME_PREFIX "/" */
-                    /*   DEVEL_PREFIX "/" */
-                    /*   UCLIBC_HAS_WCHAR y */
-                    /*   UCLIBC_HAS_FTW y */
-                    /*   UCLIBC_HAS_RPC y */
-                    /*   DO_C99_MATH y */
-                    /*   UCLIBC_HAS_PROGRAM_INVOCATION_NAME y */
-                    /*   UCLIBC_SUSV3_LEGACY y */
-                    /*   UCLIBC_HAS_THREADS_NATIVE y */
-                    /*   KERNEL_HEADERS "${linuxHeaders}/include" */
-                    /* ''; */
-                    /* crossAttrs = '' */
-                    /*   UCLIBC_SUSV3_LEGACY y */
-                    /* ''; */
-                    crossAttrs.extraCrossConfig = ''
-                      UCLIBC_SUSV3_LEGACY y
-                    '';
-                    configurePhase = oldAttrs.configurePhase + ''
-                      echo "=========================================" &1>2
-                      echo "=========================================" &1>2
-                      echo "$extraCrossConfig" &1>2
-                      echo "=========================================" &1>2
-                      echo "=========================================" &1>2
-                    '';
-                  }
-                );
+              /*       /1* # UCLIBC_SUSV3_LEGACY defines 'usleep', needed for socat dependency libxio.a *1/ */
+              /*       /1* nixConfig = '' *1/ */
+              /*       /1*   RUNTIME_PREFIX "/" *1/ */
+              /*       /1*   DEVEL_PREFIX "/" *1/ */
+              /*       /1*   UCLIBC_HAS_WCHAR y *1/ */
+              /*       /1*   UCLIBC_HAS_FTW y *1/ */
+              /*       /1*   UCLIBC_HAS_RPC y *1/ */
+              /*       /1*   DO_C99_MATH y *1/ */
+              /*       /1*   UCLIBC_HAS_PROGRAM_INVOCATION_NAME y *1/ */
+              /*       /1*   UCLIBC_SUSV3_LEGACY y *1/ */
+              /*       /1*   UCLIBC_HAS_THREADS_NATIVE y *1/ */
+              /*       /1*   KERNEL_HEADERS "${linuxHeaders}/include" *1/ */
+              /*       /1* ''; *1/ */
+              /*       /1* crossAttrs = '' *1/ */
+              /*       /1*   UCLIBC_SUSV3_LEGACY y *1/ */
+              /*       /1* ''; *1/ */
+              /*       crossAttrs.extraCrossConfig = '' */
+              /*         UCLIBC_SUSV3_LEGACY y */
+              /*       ''; */
+              /*       configurePhase = oldAttrs.configurePhase + '' */
+              /*         echo "=========================================" &1>2 */
+              /*         echo "=========================================" &1>2 */
+              /*         echo "$extraCrossConfig" &1>2 */
+              /*         echo "=========================================" &1>2 */
+              /*         echo "=========================================" &1>2 */
+              /*       ''; */
+              /*     } */
+              /*   ); */
               libcCross = overrideDerivation super.libcCross
                 (oldAttrs:
                   {
                     extraCrossConfig = ''
+                      UCLIBC HAS_RESOLVER_SUPPORT y
                       UCLIBC_SUSV3_LEGACY y
-                      BR2_UCLIBC_CONFIG y
-                      UCLIBC_SUSV3_LEGACY_MACROS y
-                    '';
+                      UCLIBC_HAS_LIBRESOLV_STUB y
+                      UCLIBC_HAS_LIBNSL_STUB y
+                      BR2_UCLIBC_CONFIG y'';
+                    /* extraConfig = ''UCLIBC HAS_RESOLVER_SUPPORT y''; */
+                    # BR2_UCLIBC_CONFIG y
+                    # UCLIBC_SUSV3_LEGACY_MACROS y
                     configurePhase = oldAttrs.configurePhase + ''
                       echo "=========================================" &1>2
                       echo "=========================================" &1>2
                       echo "$extraCrossConfig" &1>2
+                      echo "------" &1>2
+                      # cat &1>2 << EOF |
+                      # {super.libcCross.extraConfig}
+                      # EOF
+                      echo "UCLIBC_HAS_RESOLVER_SUPPORT=y" >> .config
+                      cat .config &1>2
                       echo "=========================================" &1>2
                       echo "=========================================" &1>2
                       sleep 10;
                     '';
+                    /* echo $(parseconfig $extraCrossConfig) &1>2 */
+
+                    /* configurePhase = */
+                    /*   let archMakeFlag = if cross != null then "ARCH=${cross.arch}" else ""; */
+                    /*       crossMakeFlag = if cross != null then "CROSS=${cross.config}-" else ""; */
+                    /*       configParser = '' */
+                    /*         function parseconfig { */
+                    /*             set -x */
+                    /*             while read LINE; do */
+                    /*                 NAME=`echo "$LINE" | cut -d \  -f 1` */
+                    /*                 OPTION=`echo "$LINE" | cut -d \  -f 2` */
+
+                    /*                 if test -z "$NAME"; then */
+                    /*                     continue */
+                    /*                 fi */
+
+                    /*                 echo "parseconfig: removing $NAME" */
+                    /*                 sed -i /^$NAME=/d .config */
+
+                    /*                 #if test "$OPTION" != n; then */
+                    /*                     echo "parseconfig: setting $NAME=$OPTION" */
+                    /*                     echo "$NAME=$OPTION" >> .config */
+                    /*                 #fi */
+                    /*             done */
+                    /*             set +x */
+                    /*         }''; */
+                    /*       linuxHeaders = ''/nix/store/hx0ldddgr15c70gh1nvavkc6ihjibs6x-linux-headers-4.4.10/include''; */
+                    /*       nixConfig = '' */
+                    /*         RUNTIME_PREFIX "/" */
+                    /*         DEVEL_PREFIX "/" */
+                    /*         UCLIBC_HAS_WCHAR y */
+                    /*         UCLIBC_HAS_FTW y */
+                    /*         UCLIBC_HAS_RPC y */
+                    /*         DO_C99_MATH y */
+                    /*         UCLIBC_HAS_PROGRAM_INVOCATION_NAME y */
+                    /*         UCLIBC_SUSV4_LEGACY y */
+                    /*         UCLIBC_HAS_THREADS_NATIVE y */
+                    /*         UCLIBC_SUSV3_LEGACY y */
+                    /*         UCLIBC_HAS_LIBRESOLV_STUB y */
+                    /*         KERNEL_HEADERS "${linuxHeaders}/include" */
+                    /*       '' ; */
+                    /*   in '' */
+                    /*     make defconfig ${archMakeFlag} */
+                    /*     ${configParser} */
+                    /*     cat << EOF | parseconfig */
+                    /*     ${nixConfig} */
+                    /*     EOF */
+                    /*     make oldconfig */
+                    /*   ''; */
                   }
                 );
               nix = overrideDerivation super.nix
@@ -180,7 +245,8 @@ in
                     bash_cv_wcwidth_broken = "no";
                   }
                 );
-              socat = /* overrideDerivation */ super.socat.override
+              /* socat = /1* overrideDerivation *1/ super.socat.override */
+              socat = overrideDerivation super.socat
                 (oldAttrs:
                   {
                     /* cc = self.stdenv.gccCross; */
@@ -198,6 +264,7 @@ in
                     /*   gcc --version &1>2 */
                     /*   gcc -print-libgcc-file-name &1>2 */
                     /* ''; #  + oldAttrs.configurePhase; */
+                    /* buildInputs = oldAttrs.buildInputs ++ [ super.libresolv ]; */
                   }
                 );
               /* petool = self.callPackage (self.fetchFromGitHub { */
